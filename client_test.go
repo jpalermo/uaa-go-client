@@ -194,15 +194,15 @@ var _ = Describe("UAA Client", func() {
 
 			BeforeEach(func() {
 				var err error
-				var basePath = path.Join(os.Getenv("GOPATH"), "src", "github.com", "cloudfoundry-incubator", "uaa-go-client", "fixtures", "certs")
-				cfg.CACerts = filepath.Join(basePath, "cacerts.pem")
+				var basePath = path.Join(os.Getenv("GOPATH"), "src", "github.com", "cloudfoundry-incubator", "uaa-go-client", "fixtures")
+				cfg.CACerts = filepath.Join(basePath, "ca.pem")
 				cfg.MaxNumberOfRetries = 0
 				tlsClient, err = uaa_go_client.NewClient(logger, cfg, clock)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(tlsClient).ToNot(BeNil())
 			})
 
-			FIt("can make uaa request with cert", func() {
+			It("can make uaa request with cert", func() {
 				_, err := tlsClient.FetchToken(true)
 				Expect(err).ToNot(HaveOccurred())
 			})

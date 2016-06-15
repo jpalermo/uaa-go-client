@@ -3,6 +3,7 @@ package uaa_go_client
 import (
 	"bytes"
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
 	"errors"
@@ -88,8 +89,8 @@ func NewClient(logger lager.Logger, cfg *config.Config, clock clock.Clock) (Clie
 
 func newSecureClient(cfg *config.Config) (*http.Client, error) {
 	tlsConfig := &tls.Config{InsecureSkipVerify: cfg.SkipVerification}
-	if caCertFile != "" {
-		certBytes, err := ioutil.ReadFile(caCertFile)
+	if cfg.CACerts != "" {
+		certBytes, err := ioutil.ReadFile(cfg.CACerts)
 		if err != nil {
 			return nil, fmt.Errorf("failed read ca cert file: %s", err.Error())
 		}
@@ -99,11 +100,10 @@ func newSecureClient(cfg *config.Config) (*http.Client, error) {
 			return nil, errors.New("Unable to load caCert")
 		}
 		tlsConfig.RootCAs = caCertPool
-		tlsConfig.ClientCAs = caCertPool
 	}
 
 	tr := &http.Transport{
-		TLSClientConfig: ,
+		TLSClientConfig: tlsConfig,
 	}
 
 	client := &http.Client{Transport: tr}
@@ -144,9 +144,7 @@ func (u *UaaClient) FetchToken(forceUpdate bool) (*schema.Token, error) {
 		if retry && retryCount < u.config.MaxNumberOfRetries {
 			logger.Debug("retry-fetching-token", lager.Data{"retry-count": retryCount})
 			retryCount++
-			fmt.Println("RETRY INTERVAL: " + u.config.RetryInterval.String())
 			u.clock.Sleep(u.config.RetryInterval)
-			fmt.Println("Continuing")
 			continue
 		} else {
 			return nil, err
